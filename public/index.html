@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=divice-width, initial-scale=1, maxinum-scale=1, user-scalable=no">
+<title>Chatting with Tom</title>
+<style>
+*{margin: 0; padding: 0; box-sizing: border-box;}
+html,body{width: 100%; height: 100%;}
+#chatbox{width: 100%; height: 90%; border: 1px solid #AAAAAA; overflow-y: auto;}
+form{width: 100%; height: 10%;}
+#message{display: inline-block; float: left; width: 80%; height: 100%; font-size: 18px;}
+#submit{display: inline-block; float: left; width: 20%; height: 100%; text-align: center; font-size: 18px; cursor: pointer;}
+.bubble{color: #333333; border-radius: 5px; clear: both; padding: 15px;}
+.bubble.bubble-left{float: left; margin-top: 5px; margin-left: 5px; background: #FFFFFF; border: 1px solid #999999;}
+.bubble.bubble-right{float: right; margin-top: 5px; margin-right: 5px; background: #98E165; border: 1px solid #98E165;}
+</style>
+</head>
+<body>
+
+<div id="chatbox">
+    <div class="bubble bubble-left">Hello, this is Tom, need help?</div>
+    <!-- <div class="bubble bubble-right">Tom, tell me a joke.</div> -->
+</div>
+<form action="/chat" method="get">
+    <textarea name="message" id="message"></textarea>
+    <button type="submit" id="submit">Submit</button>
+</form>
+
+<script type="text/javascript">
+
+var divChat = document.getElementById('chatbox');
+var txtMessage = document.getElementById("message");
+var btnSubmit = document.getElementById("submit");
+
+//Keydown event
+document.onkeydown = function(e) {
+    var keyCode = e.keyCode || e.which || e.charCode;
+    var ctrlKey = e.ctrlKey || e.metaKey;
+    if(ctrlKey && keyCode == 13) {
+        btnSubmit.click();
+    }
+}
+
+//Websocket
+if(window.WebSocket){
+    var ws = new WebSocket('ws://127.0.0.1:2426');
+
+    ws.onopen = function(e){
+        console.log("连接服务器成功");
+        //ws.send("connect");
+    }
+    ws.onclose = function(e){
+        console.log("服务器关闭");
+    }
+    ws.onerror = function(){
+        console.log("连接出错");
+    }
+
+    ws.onmessage = function(e){
+        //var time = new Date();
+        var divLeft = document.createElement('div');
+        divLeft.setAttribute("class", "bubble bubble-left");
+        divLeft.innerHTML = e.data;
+        divChat.appendChild(divLeft);
+    }
+
+    btnSubmit.onclick = function(){
+        var message = txtMessage.value;
+        if(message != ""){
+            var divRight = document.createElement('div');
+            divRight.setAttribute("class", "bubble bubble-right");
+            divRight.innerHTML = message;
+            divChat.appendChild(divRight);
+
+            ws.send(message);
+            txtMessage.value = "";
+        }
+        return false;
+    }
+}
+</script>
+</body>
+</html>
